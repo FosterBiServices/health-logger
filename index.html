@@ -4,14 +4,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Health Logger</title>
 <style>
-body {
-    font-family: Arial;
-    padding: 20px;
-    background: #f4f6f8;
-}
-h2 {
-    text-align: center;
-}
+body { font-family: Arial; padding: 20px; background: #f4f6f8; }
+h2 { text-align: center; }
 input, select, button {
     width: 100%;
     padding: 10px;
@@ -24,11 +18,20 @@ button {
     border: none;
     border-radius: 5px;
 }
+.secondary {
+    background: #555;
+}
+.danger {
+    background: #a80000;
+}
 .log-entry {
     background: white;
     padding: 10px;
     margin-top: 10px;
     border-radius: 5px;
+}
+small {
+    color: gray;
 }
 </style>
 </head>
@@ -67,6 +70,13 @@ button {
 
 <button onclick="saveLog()">Save Entry</button>
 
+<hr>
+
+<h3>Data Options</h3>
+
+<button class="secondary" onclick="exportCSV()">Export to CSV</button>
+<button class="danger" onclick="clearLogs()">Clear All Logs</button>
+
 <h3>Log History</h3>
 <div id="logs"></div>
 
@@ -79,6 +89,7 @@ function setDefaults() {
 
 function saveLog() {
     const entry = {
+        id: Date.now(),
         date: document.getElementById("date").value,
         time: document.getElementById("time").value,
         bp: document.getElementById("bp").value,
@@ -112,10 +123,47 @@ function displayLogs() {
             Sugar: ${log.sugar}<br>
             Meal: ${log.meal}<br>
             Meds: ${log.med}<br>
-            Exercise: ${log.exercise}
+            Exercise: ${log.exercise}<br><br>
+            <button class="danger" onclick="deleteLog(${log.id})">Delete Entry</button>
         </div>
         `;
     });
+}
+
+function deleteLog(id) {
+    let logs = JSON.parse(localStorage.getItem("healthLogs")) || [];
+    logs = logs.filter(log => log.id !== id);
+    localStorage.setItem("healthLogs", JSON.stringify(logs));
+    displayLogs();
+}
+
+function clearLogs() {
+    if (confirm("Are you sure you want to delete all logs?")) {
+        localStorage.removeItem("healthLogs");
+        displayLogs();
+    }
+}
+
+function exportCSV() {
+    let logs = JSON.parse(localStorage.getItem("healthLogs")) || [];
+    if (logs.length === 0) {
+        alert("No data to export.");
+        return;
+    }
+
+    let csv = "Date,Time,Blood Pressure,Heart Rate,Blood Sugar,Meal Timing,Medication,Exercise\n";
+
+    logs.forEach(log => {
+        csv += `${log.date},${log.time},${log.bp},${log.hr},${log.sugar},${log.meal},${log.med},${log.exercise}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "health_logs.csv";
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 function clearFields() {
