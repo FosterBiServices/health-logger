@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Logger</title>
+<style>
+body {
+    font-family: Arial;
+    padding: 20px;
+    background: #f4f6f8;
+}
+h2 {
+    text-align: center;
+}
+input, select, button {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 16px;
+}
+button {
+    background: #00315F;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+.log-entry {
+    background: white;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+</style>
+</head>
+<body>
+
+<h2>Health Logger</h2>
+
+<label>Date</label>
+<input type="date" id="date">
+
+<label>Time of Day</label>
+<input type="time" id="time">
+
+<label>Blood Pressure (e.g. 120/80)</label>
+<input type="text" id="bp">
+
+<label>Heart Rate</label>
+<input type="number" id="hr">
+
+<label>Blood Sugar</label>
+<input type="number" id="sugar">
+
+<label>Meal Timing</label>
+<select id="meal">
+<option value="">None</option>
+<option>Before Meal</option>
+<option>During Meal</option>
+<option>After Meal</option>
+</select>
+
+<label>Insulin / Medication Notes</label>
+<input type="text" id="med">
+
+<label>Exercise Notes</label>
+<input type="text" id="exercise">
+
+<button onclick="saveLog()">Save Entry</button>
+
+<h3>Log History</h3>
+<div id="logs"></div>
+
+<script>
+function setDefaults() {
+    const now = new Date();
+    document.getElementById("date").value = now.toISOString().split("T")[0];
+    document.getElementById("time").value = now.toTimeString().slice(0,5);
+}
+
+function saveLog() {
+    const entry = {
+        date: document.getElementById("date").value,
+        time: document.getElementById("time").value,
+        bp: document.getElementById("bp").value,
+        hr: document.getElementById("hr").value,
+        sugar: document.getElementById("sugar").value,
+        meal: document.getElementById("meal").value,
+        med: document.getElementById("med").value,
+        exercise: document.getElementById("exercise").value
+    };
+
+    let logs = JSON.parse(localStorage.getItem("healthLogs")) || [];
+    logs.unshift(entry);
+    localStorage.setItem("healthLogs", JSON.stringify(logs));
+
+    displayLogs();
+    clearFields();
+    setDefaults();
+}
+
+function displayLogs() {
+    let logs = JSON.parse(localStorage.getItem("healthLogs")) || [];
+    let logDiv = document.getElementById("logs");
+    logDiv.innerHTML = "";
+
+    logs.forEach(log => {
+        logDiv.innerHTML += `
+        <div class="log-entry">
+            <strong>${log.date} at ${log.time}</strong><br>
+            BP: ${log.bp}<br>
+            HR: ${log.hr}<br>
+            Sugar: ${log.sugar}<br>
+            Meal: ${log.meal}<br>
+            Meds: ${log.med}<br>
+            Exercise: ${log.exercise}
+        </div>
+        `;
+    });
+}
+
+function clearFields() {
+    document.getElementById("bp").value = "";
+    document.getElementById("hr").value = "";
+    document.getElementById("sugar").value = "";
+    document.getElementById("meal").value = "";
+    document.getElementById("med").value = "";
+    document.getElementById("exercise").value = "";
+}
+
+setDefaults();
+displayLogs();
+</script>
+
+</body>
+</html>
